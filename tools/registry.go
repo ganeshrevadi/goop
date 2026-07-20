@@ -8,16 +8,16 @@ type Registry struct {
 // New creates an empty registry.
 func New() *Registry {
 	return &Registry{
-		tools: make(map[string]Tool)
+		tools: make(map[string]Tool),
 	}
 }
 
 // Register adds a tool to the registry, keyed by its Name.
 func (r *Registry) Register(t Tool) {
-		if r.tools == nil {
-			r.tools = make(map[string]Tool)
-		}
-		r.tools[Name] = t
+	if r.tools == nil {
+		r.tools = make(map[string]Tool)
+	}
+	r.tools[t.Name] = t
 }
 
 // Get looks up a tool by name. Returns the tool and true if found.
@@ -28,10 +28,10 @@ func (r *Registry) Get(name string) (Tool, bool) {
 
 // List returns all registered tools as a slice.
 func (r *Registry) List() []Tool {
-	var list []Tool{}
-	
-	for _, val := range r.tools{
-		list = append(list, val);
+	var list []Tool
+
+	for _, val := range r.tools {
+		list = append(list, val)
 	}
 
 	return list
@@ -41,16 +41,16 @@ func (r *Registry) List() []Tool {
 // include in the LLM API request body.
 func (r *Registry) Definitions() []map[string]any {
 	var def []map[string]any
-	
-	for _, val := range r.tools{
+
+	for _, val := range r.tools {
 		def = append(def, map[string]any{
 			"type": "function",
-			"function":map[string]any{
-				"name": val.Name,
+			"function": map[string]any{
+				"name":        val.Name,
 				"description": val.Description,
-				"parameters": val.Parameters
-			}
+				"parameters":  val.Parameters,
+			},
 		})
-	}	
+	}
 	return def
 }
