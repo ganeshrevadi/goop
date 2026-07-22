@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -32,6 +33,13 @@ func NewReadTool() Tool {
 			path, _ := args["path"].(string)
 			if path == "" {
 				return "", fmt.Errorf("path is required")
+			}
+
+			if !filepath.IsAbs(path) {
+				cwd, err := os.Getwd()
+				if err == nil {
+					path = filepath.Join(cwd, path)
+				}
 			}
 
 			data, err := os.ReadFile(path)

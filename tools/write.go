@@ -31,6 +31,13 @@ func NewWriteTool() Tool {
 				return "", fmt.Errorf("path is required")
 			}
 
+			if !filepath.IsAbs(path) {
+				cwd, err := os.Getwd()
+				if err == nil {
+					path = filepath.Join(cwd, path)
+				}
+			}
+
 			content, _ := args["content"].(string)
 
 			dir := filepath.Dir(path)

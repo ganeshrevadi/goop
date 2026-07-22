@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/vamp/goop/agent"
@@ -78,8 +79,11 @@ func (c *OllamaClient) ChatStream(ctx context.Context, model string, messages []
 
 // buildMessages converts agent.Message values into the OpenAI API format.
 func buildMessages(messages []agent.Message) []map[string]any {
+	cwd, _ := os.Getwd()
+	projectHint := fmt.Sprintf("The current working directory is %s. Always use paths relative to this directory (e.g. 'agent/loop.go', not absolute paths). Here are the files in the project: main.go, agent/types.go, agent/agent.go, agent/loop.go, llm/client.go, llm/ollama.go, tools/types.go, tools/registry.go, tools/read.go, tools/write.go, tools/bash.go", cwd)
+
 	llmMessage := []map[string]any{
-		{"role": "system", "content": "You are goop, a helpful coding agent."},
+		{"role": "system", "content": fmt.Sprintf("You are goop, a helpful coding agent. %s", projectHint)},
 	}
 
 	for _, msg := range messages {
