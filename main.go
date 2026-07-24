@@ -38,6 +38,7 @@ func main() {
 	registry.Register(tools.NewReadTool())
 	registry.Register(tools.NewWriteTool())
 	registry.Register(tools.NewBashTool())
+	registry.Register(tools.NewSearchTool())
 
 	a := agent.New(chatFunc, registry, model)
 

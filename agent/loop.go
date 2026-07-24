@@ -48,10 +48,8 @@ func (a *Agent) Run(ctx context.Context, input string) (string, error) {
 			if len(toolCalls) == 0 {
 				return content, nil
 			}
-			fmt.Println()
 			for _, tc := range toolCalls {
 				result := a.executeToolCall(tc)
-				fmt.Printf("  → %s (%s): %s\n", tc.Function.Name, tc.ID, result)
 				a.AddToolResult(tc.ID, tc.Function.Name, result)
 			}
 		default:
@@ -86,6 +84,13 @@ func (a *Agent) executeToolCall(toolCall ToolCall) string {
 		return fmt.Sprintf("Error: failed to parse arguments: %v", err)
 	}
 
+	// Some models (like llama3.2) wrap values in schema-like objects:
+	//   {"query": {"value": "Bangalore weather"}}
+	// instead of the expected:
+	//   {"query": "Bangalore weather"}
+	// Unwrap them so tool Execute functions get the plain values.
+	unwrapArgs(args)
+
 	tool, ok := a.registry.Get(toolCall.Function.Name)
 	if !ok {
 		return fmt.Sprintf("Error: tool not found: %s", toolCall.Function.Name)
@@ -96,6 +101,21 @@ func (a *Agent) executeToolCall(toolCall ToolCall) string {
 		return fmt.Sprintf("Error: %v\n%s", err, result)
 	}
 	return result
+}
+
+// unwrapArgs converts wrapped values like {"value": "foo"} into plain "foo".
+// llama3.2 sometimes wraps arguments in schema-like objects with type/value fields.
+func unwrapArgs(args map[string]any) {
+	for k, v := range args {
+		m, ok := v.(map[string]any)
+		if !ok {
+			continue
+		}
+		// If the map looks like a wrapped value (has a "value" key), extract it.
+		if val, exists := m["value"]; exists {
+			args[k] = val
+		}
+	}
 }
 
 // ensure registry implements tools.Registry interface
